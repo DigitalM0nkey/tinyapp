@@ -15,7 +15,7 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.send("Hello World!");
 });
 
 app.get("/urls.json", (req, res) => {
