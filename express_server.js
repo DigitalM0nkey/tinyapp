@@ -15,11 +15,12 @@ const urlDatabase = {
 
 
 app.post("/urls", (req, res) => {
+  const randomString = generateRandomString();
   console.log(req.body);  // Log the POST request body to the console
-  urlDatabase[generateRandomString()] = req.body.longURL;
+  urlDatabase[randomString] = req.body.longURL;
   console.log(urlDatabase);
-
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  res.redirect("/urls/" + randomString);
+  // res.send(urls);         // Respond with 'Ok' (we will replace this)
 });
 
 const generateRandomString = () => {
@@ -42,6 +43,10 @@ app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   let templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL]/* What goes here? */ };
   res.render("urls_show", templateVars);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  res.redirect(urlDatabase[req.params.shortURL]);
 });
 
 app.get("/", (req, res) => {
