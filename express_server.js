@@ -1,6 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const cookieParser = ('cookie-Parser');
+const cookieParser = require('cookie-parser');
 const crypto = require("crypto");
 const app = express();
 const PORT = 8080; // default port 8080
@@ -21,6 +21,11 @@ const checkIfHttpExists = (input) => {
     return input;
   }
 };
+
+app.post("/login", (req, res) => {
+  res.cookie('username', req.body.username);
+  res.redirect("/urls/");
+});
 
 app.post("/urls", (req, res) => {
   const randomString = generateRandomString();
