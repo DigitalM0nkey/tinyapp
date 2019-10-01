@@ -1,12 +1,13 @@
 const express = require("express");
+const bodyParser = require("body-parser");
+const cookieParser = ('cookie-Parser');
 const crypto = require("crypto");
 const app = express();
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
-
-const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -20,7 +21,6 @@ const checkIfHttpExists = (input) => {
     return input;
   }
 };
-
 
 app.post("/urls", (req, res) => {
   const randomString = generateRandomString();
@@ -42,7 +42,6 @@ app.post("/urls/:shortURL", (req, res) => {
   urlDatabase[req.params.shortURL] = [checkIfHttpExists(req.body.newURL)];
   res.redirect("/urls/");
 });
-
 
 
 const generateRandomString = () => {
