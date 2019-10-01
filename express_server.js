@@ -13,11 +13,20 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const checkIfHttpExists = (input) => {
+  if (!input.startsWith('http') || !input.startsWith('https')) {
+    return input = 'http://' + input;
+  } else {
+    return input;
+  }
+};
+
+
 app.post("/urls", (req, res) => {
   const randomString = generateRandomString();
-  console.log(req.body);  // Log the POST request body to the console
-  urlDatabase[randomString] = req.body.longURL;
-  console.log(urlDatabase);
+  const address = checkIfHttpExists(req.body.longURL);
+  console.log("req.body : ", req.body);  // Log the POST request body to the console
+  urlDatabase[randomString] = address;
   res.redirect("/urls/" + randomString);
   // res.send(urls);         // Respond with 'Ok' (we will replace this)
 });
