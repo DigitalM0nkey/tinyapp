@@ -1,4 +1,5 @@
 const express = require("express");
+const crypto = require("crypto");
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -11,6 +12,19 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
+
+app.post("/urls", (req, res) => {
+  console.log(req.body);  // Log the POST request body to the console
+  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+});
+
+const generateRandomString = () => {
+  return crypto.randomBytes(3).toString('hex');
+};
+
+// console.log(generateRandomString());
+
 
 app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase };
