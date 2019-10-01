@@ -37,6 +37,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls/");
 });
 
+app.post("/urls/:shortURL", (req, res) => {
+  console.log(req.body.newURL);
+  urlDatabase[req.params.shortURL] = [checkIfHttpExists(req.body.newURL)];
+  res.redirect("/urls/");
+});
+
+
 
 const generateRandomString = () => {
   return crypto.randomBytes(3).toString('hex');
