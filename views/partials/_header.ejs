@@ -16,13 +16,11 @@
 
       <br>
 
-
-
-      <%  if ( username ) { %>
+      <%  if ( user ) { %>
       <form method="POST" action="/logout">
         <div>
           <label>
-            <p class="font-weight-bold">Logged In As: <%= username %></p>
+            <p class="font-weight-bold">Logged In As: <%= user.email %></p>
           </label>
           <button type="submit" class="btn btn-primary" name="logout">Log out</button>
         </div>

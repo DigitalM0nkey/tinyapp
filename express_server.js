@@ -43,14 +43,15 @@ const checkIfHttpExists = (input) => {
 };
 
 // Check if an email address exists - return true/false
-const checkIfEmailExists = (input) => {
-  for (const user in users) {
-    console.log("INPUT: ", input);
-    if (input === users[user].email) {
-      console.log("DATABASE TRUE: ", users[user].email);
-      return true;
+const getUserByEmail = (email) => {
+  for (const id in users) {
+    console.log("email: ", email);
+    const user = users[id].email;
+    if (email === user.email) {
+      console.log("DATABASE TRUE: ", user);
+      return user;
     } else {
-      console.log("DATABASE FALSE: ", users[user].email);
+      console.log("DATABASE FALSE: ", user);
     }
   }
 };
@@ -66,7 +67,7 @@ app.post("/register", (req, res) => {
     res.send('ERROR 400');
   } else {
     // Check if email is in the database
-    if (checkIfEmailExists(req.body.email)) {
+    if (getUserByEmail(req.body.email)) {
       console.log("ERROR 400");
       res.status(400);
       res.send('ERROR 400');
@@ -85,12 +86,13 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie('username', req.body.username);
+  const user = getUserByEmail(req.body.email);
+  res.cookie('user_id', user.id);
   res.redirect("/urls/");
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect("/urls/");
 });
 
@@ -122,29 +124,34 @@ const generateRandomString = () => {
 
 // console.log(generateRandomString());
 
+const getTemplateVars = (req) => {
+  const userId = req.cookies["user_id"];
+  const shortURL = req.params.shortURL;
+  console.log(userId);
+  const user = users[userId];
+  let templateVars = {
+    urls: urlDatabase,
+    user: user,
+    shortURL: shortURL,
+    longURL: urlDatabase[shortURL]
+  };
+  return templateVars;
+};
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase, username: req.cookies["username"] };
-  res.render("urls_index", templateVars);
+  res.render("urls_index", getTemplateVars(req));
 });
 
 app.get("/register", (req, res) => {
-  let templateVars = { urls: urlDatabase, username: req.cookies["username"] };
-  res.render("urls_registration", templateVars);
+  res.render("urls_registration", getTemplateVars(req));
 });
 
 app.get("/urls/new", (req, res) => {
-  let templateVars = { username: req.cookies["username"] };
-  res.render("urls_new", templateVars);
+  res.render("urls_new", getTemplateVars(req));
 });
 
-
-
-
 app.get("/urls/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
-  let templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL], username: req.cookies["username"] };
-  res.render("urls_show", templateVars);
+  res.render("urls_show", getTemplateVars(req));
 });
 
 app.get("/u/:shortURL", (req, res) => {
