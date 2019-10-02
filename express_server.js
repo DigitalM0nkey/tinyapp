@@ -14,6 +14,7 @@ app.use(cookieParser());
 const users = {
   "userRandomID": {
     id: "userRandomID",
+    username: "greenFox",
     email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
@@ -22,8 +23,7 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk"
   }
-}
-
+};
 
 
 
@@ -32,6 +32,8 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+
+// check if address contains HTTP:// or HTTPS://, if not, add HTTP:// to it
 const checkIfHttpExists = (input) => {
   if (!input.startsWith('http') || !input.startsWith('https')) {
     return input = 'http://' + input;
@@ -39,6 +41,48 @@ const checkIfHttpExists = (input) => {
     return input;
   }
 };
+
+// Check if an email address exists - return true/false
+const checkIfEmailExists = (input) => {
+  for (const user in users) {
+    console.log("INPUT: ", input);
+    if (input === users[user].email) {
+      console.log("DATABASE TRUE: ", users[user].email);
+      return true;
+    } else {
+      console.log("DATABASE FALSE: ", users[user].email);
+    }
+  }
+};
+
+
+
+app.post("/register", (req, res) => {
+  const uniqueID = generateRandomString();
+  // check if fields are empty
+  if (req.body.email.length === 0 || req.body.password.length === 0 || req.body.username.length === 0) {
+    console.log("ERROR 400");
+    res.status(400);
+    res.send('ERROR 400');
+  } else {
+    // Check if email is in the database
+    if (checkIfEmailExists(req.body.email)) {
+      console.log("ERROR 400");
+      res.status(400);
+      res.send('ERROR 400');
+    } else {
+      users[uniqueID] = {
+        id: uniqueID,
+        username: req.body.username,
+        email: req.body.email,
+        password: req.body.password,
+      };
+      res.cookie('user_id', uniqueID);
+      console.log(users);
+      res.redirect("/urls");
+    }
+  }
+});
 
 app.post("/login", (req, res) => {
   res.cookie('username', req.body.username);
@@ -84,7 +128,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-app.get("/registration", (req, res) => {
+app.get("/register", (req, res) => {
   let templateVars = { urls: urlDatabase, username: req.cookies["username"] };
   res.render("urls_registration", templateVars);
 });
