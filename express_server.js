@@ -45,18 +45,17 @@ const checkIfHttpExists = (input) => {
 // Check if an email address exists - return true/false
 const getUserByEmail = (email) => {
   for (const id in users) {
-    console.log("email: ", email);
-    const user = users[id].email;
+    //   console.log("email: ", email);
+    const user = users[id];
     if (email === user.email) {
-      console.log("DATABASE TRUE: ", user);
+      //    console.log("DATABASE TRUE: ", user);
       return user;
     } else {
-      console.log("DATABASE FALSE: ", user);
+      //  console.log("DATABASE FALSE: ", user);
     }
   }
 };
-
-
+console.log(getUserByEmail("user2@example.com"));
 
 app.post("/register", (req, res) => {
   const uniqueID = generateRandomString();
@@ -87,8 +86,12 @@ app.post("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
   const user = getUserByEmail(req.body.email);
-  res.cookie('user_id', user.id);
-  res.redirect("/urls/");
+  if (!user) {
+    res.redirect("/register");
+  } else {
+    res.cookie('user_id', user.id);
+    res.redirect("/urls/");
+  }
 });
 
 app.post("/logout", (req, res) => {
@@ -137,6 +140,11 @@ const getTemplateVars = (req) => {
   };
   return templateVars;
 };
+
+
+app.get("/login", (req, res) => {
+  res.render("login", getTemplateVars(req));
+});
 
 app.get("/urls", (req, res) => {
   res.render("urls_index", getTemplateVars(req));
