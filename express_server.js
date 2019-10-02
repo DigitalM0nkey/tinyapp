@@ -27,6 +27,11 @@ app.post("/login", (req, res) => {
   res.redirect("/urls/");
 });
 
+app.post("/logout", (req, res) => {
+  res.clearCookie('username');
+  res.redirect("/urls/");
+});
+
 app.post("/urls", (req, res) => {
   const randomString = generateRandomString();
   const address = checkIfHttpExists(req.body.longURL);
@@ -57,7 +62,7 @@ const generateRandomString = () => {
 
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase };
+  let templateVars = { urls: urlDatabase, username: req.cookies["username"] };
   res.render("urls_index", templateVars);
 });
 
@@ -65,9 +70,12 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+
+
+
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  let templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL]/* What goes here? */ };
+  let templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL], username: req.cookies["username"] };
   res.render("urls_show", templateVars);
 });
 
