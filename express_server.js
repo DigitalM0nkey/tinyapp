@@ -18,7 +18,7 @@ const users = {
     email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
-  "user2RandomID": {
+  "sgq3y6": {
     id: "user2RandomID",
     email: "user2@example.com",
     password: "dishwasher-funk"
@@ -29,7 +29,7 @@ const users = {
 
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userId: "userRandomID" },
-  "9sm5xK": { longURL: "http://www.google.com", userId: "user2RandomID" }
+  "sgq3y": { longURL: "http://www.google.com", userId: "user2RandomID" }
 };
 
 
@@ -114,12 +114,20 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
+  if (userIsLoggeedIn(req.cookies["user_id"])) {
+    delete urlDatabase[req.params.shortURL];
+  } else {
+    res.status(403).end();
+  }
   res.redirect("/urls/");
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL]["longURL"] = [checkIfHttpExists(req.body.newURL)];
+  if (userIsLoggeedIn(req.cookies["user_id"])) {
+    urlDatabase[req.params.shortURL]["longURL"] = [checkIfHttpExists(req.body.newURL)];
+  } else {
+    res.status(403).end();
+  }
   res.redirect("/urls/");
 });
 
@@ -133,9 +141,7 @@ const onlyDisplayLoggedinUsersURLS = (user) => {
   for (const key in urlDatabase) {
     if (urlDatabase[key].userId === user) {
       newObj[key] = urlDatabase[key].longURL;
-      //console.log(true);
     }
-    //console.log(urlDatabase[key].userId, "USER:", user);
   }
   return newObj;
 };
