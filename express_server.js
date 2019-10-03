@@ -133,6 +133,7 @@ const getTemplateVars = (req) => {
   const user = users[userId];
   const longURL = urlDatabase[shortURL];
   const id = urlDatabase[shortURL];
+
   let templateVars = {
     urls: urlDatabase,
     user: user,
