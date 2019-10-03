@@ -1,20 +1,24 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const crypto = require("crypto");
 const bcrypt = require('bcrypt');
 
 
 
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080;
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ["goddog"],
+
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}));
 
 // users
-
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -29,9 +33,7 @@ const users = {
   }
 };
 
-
-
-
+// test database
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userId: "userRandomID" },
   "sgq3y": { longURL: "http://www.google.com", userId: "user2RandomID" }
@@ -50,13 +52,9 @@ const checkIfHttpExists = (input) => {
 // Check if an email address exists - return true/false
 const getUserByEmail = (email) => {
   for (const id in users) {
-    //   console.log("email: ", email);
     const user = users[id];
     if (email === user.email) {
-      //    console.log("DATABASE TRUE: ", user);
       return user;
-    } else {
-      //  console.log("DATABASE FALSE: ", user);
     }
   }
 };
@@ -66,9 +64,7 @@ app.post("/register", (req, res) => {
   // check if fields are empty
   if (req.body.email.length === 0 || req.body.password.length === 0 || req.body.username.length === 0) {
     console.log("ERROR 400");
-    res.status(400);
-    res.redirect("/login");
-    //res.send('ERROR 400 - EMPTY FIELDS');
+    res.status(400).send('ERROR 400 - EMPTY FIELDS');
   } else {
     // Check if email is in the database
     if (getUserByEmail(req.body.email)) {
@@ -82,8 +78,7 @@ app.post("/register", (req, res) => {
         email: req.body.email,
         password: bcrypt.hashSync(req.body.password, 10)
       };
-      res.cookie('user_id', uniqueID);
-      // console.log(users);
+      req.session.user_id = uniqueID;
       res.redirect("/urls");
     }
   }
@@ -96,7 +91,7 @@ app.post("/login", (req, res) => {
     res.send('ERROR 403 - NO SUCH EMAIL');
   } else {
     if (bcrypt.compareSync(req.body.password, user.password)) {
-      res.cookie('user_id', user.id);
+      req.session.user_id = user.id;
       res.redirect("/urls/");
     } else {
       res.status(403);
@@ -106,20 +101,20 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id');
+  req.session = null;
   res.redirect("/urls/");
 });
 
 app.post("/urls", (req, res) => {
   const randomString = generateRandomString();
   const address = checkIfHttpExists(req.body.longURL);
-  let objectDetails = { longURL: address, userId: req.cookies.user_id };
+  let objectDetails = { longURL: address, userId: req.session.user_id };
   urlDatabase[randomString] = objectDetails;
   res.redirect("/urls/" + randomString);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  if (userIsLoggeedIn(req.cookies["user_id"])) {
+  if (userIsLoggeedIn(req.session.user_id)) {
     delete urlDatabase[req.params.shortURL];
   } else {
     res.status(403).end();
@@ -128,7 +123,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  if (userIsLoggeedIn(req.cookies["user_id"])) {
+  if (userIsLoggeedIn(req.session.user_id)) {
     urlDatabase[req.params.shortURL]["longURL"] = [checkIfHttpExists(req.body.newURL)];
   } else {
     res.status(403).end();
@@ -158,16 +153,13 @@ const userIsLoggeedIn = (userID) => {
   return false;
 };
 
-
-
+// template variables
 const getTemplateVars = (req) => {
-  const userId = req.cookies["user_id"];
+  const userId = req.session.user_id;
   const shortURL = req.params.shortURL;
   const user = users[userId];
   const longURL = urlDatabase[shortURL];
   const id = urlDatabase[shortURL];
-
-  console.log("HERE!", user);
 
   let templateVars = {
     urls: onlyDisplayLoggedinUsersURLS(userId),
@@ -193,7 +185,7 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  if (req.cookies["user_id"]) {
+  if (req.session.user_id) {
     res.render("urls_new", getTemplateVars(req));
   } else {
     res.render("login", getTemplateVars(req));
@@ -201,7 +193,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  if (req.cookies["user_id"] === urlDatabase[req.params.shortURL].userId) {
+  if (req.session.user_id === urlDatabase[req.params.shortURL].userId) {
     res.render("urls_show", getTemplateVars(req));
   } else {
     res.redirect("/");
