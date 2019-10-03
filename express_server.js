@@ -138,8 +138,17 @@ const onlyDisplayLoggedinUsersURLS = (user) => {
     //console.log(urlDatabase[key].userId, "USER:", user);
   }
   return newObj;
-
 };
+
+const userIsLoggeedIn = (userID) => {
+  if (users[userID]) {
+    return true;
+  }
+  return false;
+};
+
+
+
 
 const getTemplateVars = (req) => {
   const userId = req.cookies["user_id"];
@@ -154,7 +163,8 @@ const getTemplateVars = (req) => {
     user: user,
     shortURL: shortURL,
     longURL: longURL,
-    userId: id
+    userId: id,
+    loggedin: userIsLoggeedIn(userId)
   };
   return templateVars;
 };
