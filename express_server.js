@@ -2,6 +2,10 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
 const crypto = require("crypto");
+const bcrypt = require('bcrypt');
+
+
+
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -24,6 +28,7 @@ const users = {
     password: "dishwasher-funk"
   }
 };
+
 
 
 
@@ -75,7 +80,7 @@ app.post("/register", (req, res) => {
         id: uniqueID,
         username: req.body.username,
         email: req.body.email,
-        password: req.body.password,
+        password: bcrypt.hashSync(req.body.password, 10)
       };
       res.cookie('user_id', uniqueID);
       // console.log(users);
@@ -90,12 +95,12 @@ app.post("/login", (req, res) => {
     res.status(403);
     res.send('ERROR 403 - NO SUCH EMAIL');
   } else {
-    if (user.password !== req.body.password) {
-      res.status(403);
-      res.send('ERROR 403 - PASSWORD INCORRECT');
-    } else {
+    if (bcrypt.compareSync(req.body.password, user.password)) {
       res.cookie('user_id', user.id);
       res.redirect("/urls/");
+    } else {
+      res.status(403);
+      res.send('ERROR 403 - PASSWORD INCORRECT');
     }
   }
 });
@@ -155,7 +160,6 @@ const userIsLoggeedIn = (userID) => {
 
 
 
-
 const getTemplateVars = (req) => {
   const userId = req.cookies["user_id"];
   const shortURL = req.params.shortURL;
@@ -163,6 +167,7 @@ const getTemplateVars = (req) => {
   const longURL = urlDatabase[shortURL];
   const id = urlDatabase[shortURL];
 
+  console.log("HERE!", user);
 
   let templateVars = {
     urls: onlyDisplayLoggedinUsersURLS(userId),
