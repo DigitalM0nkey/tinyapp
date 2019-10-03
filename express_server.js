@@ -22,25 +22,11 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
 
-// test users
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
-  },
-  "sgq3y6": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  }
-};
+// User database
+const users = {};
 
-// test database
-const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userId: "userRandomID" },
-  "sgq3y": { longURL: "http://www.google.com", userId: "user2RandomID" }
-};
+// URL database
+const urlDatabase = {};
 
 // template variables
 const getTemplateVars = (req) => {
@@ -141,7 +127,10 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  res.render("urls_index", getTemplateVars(req));
+  if (userIsLoggeedIn(req.session.user_id, users)) {
+    res.render("urls_index", getTemplateVars(req));
+  }
+  res.redirect("/login");
 });
 
 app.get("/register", (req, res) => {
