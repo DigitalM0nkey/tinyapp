@@ -21,7 +21,6 @@ app.use(cookieSession({
 const users = {
   "userRandomID": {
     id: "userRandomID",
-    username: "greenFox",
     email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
@@ -48,9 +47,9 @@ const checkIfHttpExists = (input) => {
   }
 };
 
-// Check if an email address exists - return true/false
-const getUserByEmail = (email) => {
-  for (const id in users) {
+// Check if an email address exists - return user
+const getUserByEmail = (email, database) => {
+  for (const id in database) {
     const user = users[id];
     if (email === user.email) {
       return user;
@@ -61,19 +60,18 @@ const getUserByEmail = (email) => {
 app.post("/register", (req, res) => {
   const uniqueID = generateRandomString();
   // check if fields are empty
-  if (req.body.email.length === 0 || req.body.password.length === 0 || req.body.username.length === 0) {
+  if (req.body.email.length === 0 || req.body.password.length === 0) {
     console.log("ERROR 400");
     res.status(400).send('ERROR 400 - EMPTY FIELDS');
   } else {
     // Check if email is in the database
-    if (getUserByEmail(req.body.email)) {
+    if (getUserByEmail(req.body.email, users)) {
       console.log("ERROR 400");
       res.status(400);
       res.send('ERROR 400 - EMAIL ALREADY EXISTS');
     } else {
       users[uniqueID] = {
         id: uniqueID,
-        username: req.body.username,
         email: req.body.email,
         password: bcrypt.hashSync(req.body.password, 10)
       };
@@ -84,7 +82,7 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const user = getUserByEmail(req.body.email);
+  const user = getUserByEmail(req.body.email, users);
   if (!user) {
     res.status(403);
     res.send('ERROR 403 - NO SUCH EMAIL');
