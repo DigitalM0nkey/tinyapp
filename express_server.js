@@ -28,8 +28,8 @@ const users = {
 
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userId: "userRandomID" },
+  "9sm5xK": { longURL: "http://www.google.com", userId: "user2RandomID" }
 };
 
 
@@ -117,7 +117,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = [checkIfHttpExists(req.body.newURL)];
+  urlDatabase[req.params.shortURL]["longURL"] = [checkIfHttpExists(req.body.newURL)];
   res.redirect("/urls/");
 });
 
@@ -131,15 +131,17 @@ const getTemplateVars = (req) => {
   const userId = req.cookies["user_id"];
   const shortURL = req.params.shortURL;
   const user = users[userId];
+  const longURL = urlDatabase[shortURL];
+  const id = urlDatabase[shortURL];
   let templateVars = {
     urls: urlDatabase,
     user: user,
     shortURL: shortURL,
-    longURL: urlDatabase[shortURL]
+    longURL: longURL,
+    userId: id
   };
   return templateVars;
 };
-
 
 app.get("/login", (req, res) => {
   res.render("login", getTemplateVars(req));
@@ -154,7 +156,11 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new", getTemplateVars(req));
+  if (req.cookies["user_id"]) {
+    res.render("urls_new", getTemplateVars(req));
+  } else {
+    res.render("login", getTemplateVars(req));
+  }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
