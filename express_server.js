@@ -55,21 +55,20 @@ const getUserByEmail = (email) => {
     }
   }
 };
-console.log(getUserByEmail("user2@example.com"));
 
 app.post("/register", (req, res) => {
   const uniqueID = generateRandomString();
   // check if fields are empty
   if (req.body.email.length === 0 || req.body.password.length === 0 || req.body.username.length === 0) {
     console.log("ERROR 400");
-    res.status(400);
-    res.send('ERROR 400');
+    // res.status(400);
+    res.send('ERROR 400 - EMPTY FIELDS');
   } else {
     // Check if email is in the database
     if (getUserByEmail(req.body.email)) {
       console.log("ERROR 400");
-      res.status(400);
-      res.send('ERROR 400');
+      //res.status(400);
+      res.send('ERROR 400 - EMAIL ALREADY EXISTS');
     } else {
       users[uniqueID] = {
         id: uniqueID,
@@ -78,7 +77,7 @@ app.post("/register", (req, res) => {
         password: req.body.password,
       };
       res.cookie('user_id', uniqueID);
-      console.log(users);
+      // console.log(users);
       res.redirect("/urls");
     }
   }
@@ -90,8 +89,6 @@ app.post("/login", (req, res) => {
     res.status(403);
     res.send('ERROR 403 - NO SUCH EMAIL');
   } else {
-    console.log("user.password = ", user.password, "   User =  ", req.body.password);
-
     if (user.password !== req.body.password) {
       res.status(403);
       res.send('ERROR 403 - PASSWORD INCORRECT');
@@ -110,20 +107,16 @@ app.post("/logout", (req, res) => {
 app.post("/urls", (req, res) => {
   const randomString = generateRandomString();
   const address = checkIfHttpExists(req.body.longURL);
-  console.log("req.body : ", req.body);  // Log the POST request body to the console
   urlDatabase[randomString] = address;
   res.redirect("/urls/" + randomString);
-  // res.send(urls);         // Respond with 'Ok' (we will replace this)
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  console.log(req.params.shortURL);
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls/");
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  console.log(req.body.newURL);
   urlDatabase[req.params.shortURL] = [checkIfHttpExists(req.body.newURL)];
   res.redirect("/urls/");
 });
@@ -133,12 +126,10 @@ const generateRandomString = () => {
   return crypto.randomBytes(3).toString('hex');
 };
 
-// console.log(generateRandomString());
 
 const getTemplateVars = (req) => {
   const userId = req.cookies["user_id"];
   const shortURL = req.params.shortURL;
-  console.log(userId);
   const user = users[userId];
   let templateVars = {
     urls: urlDatabase,
