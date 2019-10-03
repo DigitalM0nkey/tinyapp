@@ -35,7 +35,7 @@ const urlDatabase = {
 
 // check if address contains HTTP:// or HTTPS://, if not, add HTTP:// to it
 const checkIfHttpExists = (input) => {
-  if (!input.startsWith('http') || !input.startsWith('https')) {
+  if (!input.startsWith('http') && !input.startsWith('https')) {
     return input = 'http://' + input;
   } else {
     return input;
@@ -61,13 +61,14 @@ app.post("/register", (req, res) => {
   // check if fields are empty
   if (req.body.email.length === 0 || req.body.password.length === 0 || req.body.username.length === 0) {
     console.log("ERROR 400");
-    // res.status(400);
-    res.send('ERROR 400 - EMPTY FIELDS');
+    res.status(400);
+    res.redirect("/login");
+    //res.send('ERROR 400 - EMPTY FIELDS');
   } else {
     // Check if email is in the database
     if (getUserByEmail(req.body.email)) {
       console.log("ERROR 400");
-      //res.status(400);
+      res.status(400);
       res.send('ERROR 400 - EMAIL ALREADY EXISTS');
     } else {
       users[uniqueID] = {
@@ -107,7 +108,8 @@ app.post("/logout", (req, res) => {
 app.post("/urls", (req, res) => {
   const randomString = generateRandomString();
   const address = checkIfHttpExists(req.body.longURL);
-  urlDatabase[randomString] = address;
+  let objectDetails = { longURL: address, userId: req.cookies.user_id };
+  urlDatabase[randomString] = objectDetails;
   res.redirect("/urls/" + randomString);
 });
 
@@ -126,6 +128,18 @@ const generateRandomString = () => {
   return crypto.randomBytes(3).toString('hex');
 };
 
+const onlyDisplayLoggedinUsersURLS = (user) => {
+  const newObj = {};
+  for (const key in urlDatabase) {
+    if (urlDatabase[key].userId === user) {
+      newObj[key] = urlDatabase[key].longURL;
+      //console.log(true);
+    }
+    //console.log(urlDatabase[key].userId, "USER:", user);
+  }
+  return newObj;
+
+};
 
 const getTemplateVars = (req) => {
   const userId = req.cookies["user_id"];
@@ -134,8 +148,9 @@ const getTemplateVars = (req) => {
   const longURL = urlDatabase[shortURL];
   const id = urlDatabase[shortURL];
 
+
   let templateVars = {
-    urls: urlDatabase,
+    urls: onlyDisplayLoggedinUsersURLS(userId),
     user: user,
     shortURL: shortURL,
     longURL: longURL,
@@ -165,11 +180,15 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  res.render("urls_show", getTemplateVars(req));
+  if (req.cookies["user_id"] === urlDatabase[req.params.shortURL].userId) {
+    res.render("urls_show", getTemplateVars(req));
+  } else {
+    res.redirect("/");
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  res.redirect(urlDatabase[req.params.shortURL]);
+  res.redirect(urlDatabase[req.params.shortURL].longURL);
 });
 
 app.get("/", (req, res) => {
