@@ -1,9 +1,15 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
-const crypto = require("crypto");
 const bcrypt = require('bcrypt');
-
+// helper functions
+const {
+  getUserByEmail,
+  userIsLoggeedIn,
+  onlyDisplayLoggedinUsersURLS,
+  checkIfHttpExists,
+  generateRandomString
+} = require('./helpers');
 
 const app = express();
 const PORT = 8080;
@@ -13,11 +19,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieSession({
   name: 'session',
   keys: ["goddog"],
-
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
 
-// users
+// test users
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -37,25 +42,26 @@ const urlDatabase = {
   "sgq3y": { longURL: "http://www.google.com", userId: "user2RandomID" }
 };
 
+// template variables
+const getTemplateVars = (req) => {
+  const userId = req.session.user_id;
+  const shortURL = req.params.shortURL;
+  const user = users[userId];
+  const longURL = urlDatabase[shortURL];
+  const id = urlDatabase[shortURL];
 
-// check if address contains HTTP:// or HTTPS://, if not, add HTTP:// to it
-const checkIfHttpExists = (input) => {
-  if (!input.startsWith('http') && !input.startsWith('https')) {
-    return input = 'http://' + input;
-  } else {
-    return input;
-  }
+  let templateVars = {
+    urls: onlyDisplayLoggedinUsersURLS(userId, urlDatabase),
+    user: user,
+    shortURL: shortURL,
+    longURL: longURL,
+    userId: id,
+    loggedin: userIsLoggeedIn(userId, users)
+  };
+  return templateVars;
 };
 
-// Check if an email address exists - return user
-const getUserByEmail = (email, database) => {
-  for (const id in database) {
-    const user = users[id];
-    if (email === user.email) {
-      return user;
-    }
-  }
-};
+// Post routes.
 
 app.post("/register", (req, res) => {
   const uniqueID = generateRandomString();
@@ -111,7 +117,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  if (userIsLoggeedIn(req.session.user_id)) {
+  if (userIsLoggeedIn(req.session.user_id, users)) {
     delete urlDatabase[req.params.shortURL];
   } else {
     res.status(403).end();
@@ -120,7 +126,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  if (userIsLoggeedIn(req.session.user_id)) {
+  if (userIsLoggeedIn(req.session.user_id, users)) {
     urlDatabase[req.params.shortURL]["longURL"] = [checkIfHttpExists(req.body.newURL)];
   } else {
     res.status(403).end();
@@ -128,46 +134,7 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect("/urls/");
 });
 
-
-const generateRandomString = () => {
-  return crypto.randomBytes(3).toString('hex');
-};
-
-const onlyDisplayLoggedinUsersURLS = (user) => {
-  const newObj = {};
-  for (const key in urlDatabase) {
-    if (urlDatabase[key].userId === user) {
-      newObj[key] = urlDatabase[key].longURL;
-    }
-  }
-  return newObj;
-};
-
-const userIsLoggeedIn = (userID) => {
-  if (users[userID]) {
-    return true;
-  }
-  return false;
-};
-
-// template variables
-const getTemplateVars = (req) => {
-  const userId = req.session.user_id;
-  const shortURL = req.params.shortURL;
-  const user = users[userId];
-  const longURL = urlDatabase[shortURL];
-  const id = urlDatabase[shortURL];
-
-  let templateVars = {
-    urls: onlyDisplayLoggedinUsersURLS(userId),
-    user: user,
-    shortURL: shortURL,
-    longURL: longURL,
-    userId: id,
-    loggedin: userIsLoggeedIn(userId)
-  };
-  return templateVars;
-};
+// Get routes
 
 app.get("/login", (req, res) => {
   res.render("login", getTemplateVars(req));
