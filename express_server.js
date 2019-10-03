@@ -87,10 +87,18 @@ app.post("/register", (req, res) => {
 app.post("/login", (req, res) => {
   const user = getUserByEmail(req.body.email);
   if (!user) {
-    res.redirect("/register");
+    res.status(403);
+    res.send('ERROR 403 - NO SUCH EMAIL');
   } else {
-    res.cookie('user_id', user.id);
-    res.redirect("/urls/");
+    console.log("user.password = ", user.password, "   User =  ", req.body.password);
+
+    if (user.password !== req.body.password) {
+      res.status(403);
+      res.send('ERROR 403 - PASSWORD INCORRECT');
+    } else {
+      res.cookie('user_id', user.id);
+      res.redirect("/urls/");
+    }
   }
 });
 

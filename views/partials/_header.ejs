@@ -26,17 +26,14 @@
         </div>
       </form>
       <% } else { %>
-      <form method="POST" action="/login">
-        <div class="input-group mb-3">
-          <div class="input-group-prepend">
-            <span class="input-group-text" id="basic-addon1">@</span>
 
-          </div>
-          <input type="text" class="form-control" placeholder="Username" aria-label="Username"
-            aria-describedby="basic-addon1" name="username">
-          <button type="submit" class="btn btn-primary">sign in</button>
-        </div>
-      </form>
+
+      <a href="/register">
+        <button type="submit" class="btn btn-primary">Register</button></a><a href="/login"> <button type="submit"
+          class="btn btn-primary">sign
+          in</button></a>
+
+
       <%   }  %>
 
 
