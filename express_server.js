@@ -35,25 +35,28 @@ let statusCode = "";
 let message = "";
 
 // template variables
-const getTemplateVars = (req) => {
+const getTemplateVars = (req, err) => {
   const userId = req.session.user_id;
   const shortURL = req.params.shortURL;
   const user = users[userId];
   const longURL = urlDatabase[shortURL];
   const id = urlDatabase[shortURL];
-
+  if (!err) {
+    err = {};
+  }
   let templateVars = {
     urls: onlyDisplayLoggedinUsersURLS(userId, urlDatabase),
     user: user,
     shortURL: shortURL,
     longURL: longURL,
     userId: id,
-    alertMessage: message,
-    statusCode: statusCode,
+    alertMessage: err,
+    //statusCode: statusCode,
     loggedin: userIsLoggedIn(userId, users)
   };
   return templateVars;
 };
+
 
 
 // Post routes.
@@ -62,14 +65,18 @@ app.post("/register", (req, res) => {
   const uniqueID = generateRandomString();
   // check if fields are empty
   if (req.body.email.length === 0 || req.body.password.length === 0) {
-    console.log("ERROR 400");
-    res.status(400).send('ERROR 400 - EMPTY FIELDS');
+    // message = 'EMPTY FIELDS';
+    // res.status(400);
+    res.render("urls_registration", getTemplateVars(req, alertMessage('EMPTY FIELDS', 400)));
+
   } else {
     // Check if email is in the database
     if (getUserByEmail(req.body.email, users)) {
-      console.log("ERROR 400");
-      res.status(400);
-      res.send('ERROR 400 - EMAIL ALREADY EXISTS');
+
+      // message = 'EMAIL ALREADY EXISTS';
+      // res.status(400);
+      res.render("urls_registration", getTemplateVars(req, alertMessage('EMAIL ALREADY EXISTS', 400)));
+
     } else {
       users[uniqueID] = {
         id: uniqueID,
@@ -85,19 +92,15 @@ app.post("/register", (req, res) => {
 app.post("/login", (req, res) => {
   const user = getUserByEmail(req.body.email, users);
   if (!user) {
-    statusCode = 403;
-    message = 'NO SUCH EMAIL';
     res.status(403);
-    res.render("login", getTemplateVars(req));
+    res.render("login", getTemplateVars(req, alertMessage('NO SUCH EMAIL', 403)));
   } else {
     if (bcrypt.compareSync(req.body.password, user.password)) {
       req.session.user_id = user.id;
       res.redirect("/urls/");
     } else {
-      statusCode = 403;
-      message = 'INCORRECT PASSWORD';
       res.status(403);
-      res.render("login", getTemplateVars(req));
+      res.render("login", getTemplateVars(req, alertMessage('INCORRECT PASSWORD', 403)));
     }
   }
 });
@@ -143,10 +146,8 @@ app.get("/urls", (req, res) => {
   if (userIsLoggedIn(req.session.user_id, users)) {
     res.render("urls_index", getTemplateVars(req));
   } else {
-    statusCode = 403;
-    message = "You must be logged in!";
-    res.render("login", getTemplateVars(req));
-    // res.redirect("/login");
+    res.status(403);
+    res.render("login", getTemplateVars(req, alertMessage('You must be logged in!', 403)));
   }
 });
 
@@ -158,9 +159,8 @@ app.get("/urls/new", (req, res) => {
   if (userIsLoggedIn(req.session.user_id, users)) {
     res.render("urls_new", getTemplateVars(req));
   } else {
-    statusCode = 403;
-    message = "You must be logged in!";
-    res.redirect("/login");
+    res.status(403);
+    res.render("login", getTemplateVars(req, alertMessage('You must be logged in!', 403)));
   }
 });
 

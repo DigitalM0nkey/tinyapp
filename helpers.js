@@ -42,8 +42,8 @@ const generateRandomString = () => {
   return crypto.randomBytes(3).toString('hex');
 };
 
-const alertMessage = (message) => {
-  return message;
+const alertMessage = (message, statusCode) => {
+  return { message, statusCode };
 };
 
 module.exports = { getUserByEmail, userIsLoggedIn, alertMessage, onlyDisplayLoggedinUsersURLS, checkIfHttpExists, generateRandomString };

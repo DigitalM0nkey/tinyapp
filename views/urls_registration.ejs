@@ -16,6 +16,15 @@
 
   <% include partials/_header %>
 
+  <% if (alertMessage.statusCode) { %>
+  <div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <strong><%= alertMessage.statusCode %></strong> <%= alertMessage.message %>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <% } %>
+
   <main style="margin: 1em;">
     <h3>Registration</h3>
     <br>
