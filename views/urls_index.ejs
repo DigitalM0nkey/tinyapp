@@ -15,6 +15,16 @@
 
   <% include partials/_header %>
 
+  <% if (alertMessage.statusCode) { %>
+  <div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <strong><%= alertMessage.statusCode %></strong> <%= alertMessage.message %>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <% } %>
+
+
   <% if (!user) { %>
 
   <main style="margin: 1em;">
@@ -39,7 +49,7 @@
           <tr>
             <td>
               <a href="<%= urls[url] %>"><button type="button" class="btn btn-primary">
-                  <%= url %> <span class="badge badge-light"></span>
+                  <%= url %> <span class="badge badge-light">7</span>
                 </button></a></td>
             <td><%= urls[url] %></td>
             <td>

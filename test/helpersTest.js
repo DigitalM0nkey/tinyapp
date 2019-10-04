@@ -12,7 +12,7 @@ const {
 
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userId: "userRandomID" },
-  "sgq3y": { longURL: "http://www.google.com", userId: "user2RandomID" }
+  "sgq3y": { longURL: "http://www.google.com", userId: "user2RandomID", counter: 0 }
 };
 
 const testUsers = {

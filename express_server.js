@@ -30,17 +30,12 @@ const users = {};
 // URL database
 const urlDatabase = {};
 
-// Error message
-let statusCode = "";
-let message = "";
-
 // template variables
 const getTemplateVars = (req, err) => {
   const userId = req.session.user_id;
   const shortURL = req.params.shortURL;
   const user = users[userId];
   const longURL = urlDatabase[shortURL];
-  const id = urlDatabase[shortURL];
   if (!err) {
     err = {};
   }
@@ -49,7 +44,6 @@ const getTemplateVars = (req, err) => {
     user: user,
     shortURL: shortURL,
     longURL: longURL,
-    userId: id,
     alertMessage: err,
     //statusCode: statusCode,
     loggedin: userIsLoggedIn(userId, users)
@@ -57,26 +51,19 @@ const getTemplateVars = (req, err) => {
   return templateVars;
 };
 
-
-
 // Post routes.
 
 app.post("/register", (req, res) => {
   const uniqueID = generateRandomString();
   // check if fields are empty
   if (req.body.email.length === 0 || req.body.password.length === 0) {
-    // message = 'EMPTY FIELDS';
-    // res.status(400);
+    res.status(400);
     res.render("urls_registration", getTemplateVars(req, alertMessage('EMPTY FIELDS', 400)));
-
   } else {
     // Check if email is in the database
     if (getUserByEmail(req.body.email, users)) {
-
-      // message = 'EMAIL ALREADY EXISTS';
-      // res.status(400);
+      res.status(400);
       res.render("urls_registration", getTemplateVars(req, alertMessage('EMAIL ALREADY EXISTS', 400)));
-
     } else {
       users[uniqueID] = {
         id: uniqueID,
@@ -119,13 +106,18 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  if (userIsLoggedIn(req.session.user_id, users)) {
-    delete urlDatabase[req.params.shortURL];
+  if (urlDatabase[req.params.shortURL]) {
+    if (userIsLoggedIn(req.session.user_id, users)) {
+      delete urlDatabase[req.params.shortURL];
+    } else {
+      res.status(403).end();
+    }
+    res.redirect("/urls/");
   } else {
     res.status(403).end();
   }
-  res.redirect("/urls/");
-});
+}
+);
 
 app.post("/urls/:shortURL", (req, res) => {
   if (userIsLoggedIn(req.session.user_id, users)) {
@@ -165,30 +157,46 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  if (req.session.user_id === urlDatabase[req.params.shortURL].userId) {
-    res.render("urls_show", getTemplateVars(req));
+  if (urlDatabase[req.params.shortURL]) {
+    if (req.session.user_id === urlDatabase[req.params.shortURL].userId) {
+      res.render("urls_show", getTemplateVars(req));
+    } else {
+      res.status(403);
+      res.render("urls_index", getTemplateVars(req, alertMessage("Hey BUDDY!!! That's not yours!", 403)));
+    }
   } else {
-    res.redirect("/");
+    res.status(403);
+    res.render("urls_index", getTemplateVars(req, alertMessage("Hey BUDDY!!! Shouldn't you be logged in for that?", 403)));
+  }
+});
+
+app.get("/urls/:shortURL/delete", (req, res) => {
+  if (urlDatabase[req.params.shortURL]) {
+    if (req.session.user_id === urlDatabase[req.params.shortURL].userId) {
+      res.render("urls_show", getTemplateVars(req));
+    } else {
+      res.status(403);
+      res.render("login", getTemplateVars(req, alertMessage("Hey BUDDY!!! That's not yours!", 403)));
+    }
+  } else {
+    res.status(403);
+    res.render("login", getTemplateVars(req, alertMessage("Hey BUDDY!!! Shouldn't you be logged in for that?", 403)));
   }
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  res.redirect(urlDatabase[req.params.shortURL].longURL);
+  if (urlDatabase[req.params.shortURL]) {
+    res.redirect(urlDatabase[req.params.shortURL].longURL);
+  } else {
+    res.status(403);
+    res.render("login", getTemplateVars(req, alertMessage('That link is broken 😢', 403)));
+  }
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
+  res.redirect("register");
 });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
