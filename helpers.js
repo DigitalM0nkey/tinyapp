@@ -11,7 +11,7 @@ const getUserByEmail = (email, database) => {
 };
 
 // Check if a user is logged in.
-const userIsLoggeedIn = (userID, database) => {
+const userIsLoggedIn = (userID, database) => {
   if (database[userID]) {
     return true;
   }
@@ -42,4 +42,8 @@ const generateRandomString = () => {
   return crypto.randomBytes(3).toString('hex');
 };
 
-module.exports = { getUserByEmail, userIsLoggeedIn, onlyDisplayLoggedinUsersURLS, checkIfHttpExists, generateRandomString };
+const alertMessage = (message) => {
+  return message;
+};
+
+module.exports = { getUserByEmail, userIsLoggedIn, alertMessage, onlyDisplayLoggedinUsersURLS, checkIfHttpExists, generateRandomString };

@@ -3,7 +3,7 @@ const { assert } = require('chai');
 
 const {
   getUserByEmail,
-  userIsLoggeedIn,
+  userIsLoggedIn,
   onlyDisplayLoggedinUsersURLS,
   checkIfHttpExists,
   generateRandomString
@@ -47,7 +47,7 @@ describe('getUserByEmail', function() {
 describe('userIsLoggedin', function() {
   it('should return true is user is logged in', function() {
 
-    const input = userIsLoggeedIn("user2RandomID", testUsers);
+    const input = userIsLoggedIn("user2RandomID", testUsers);
     const expectedOutput = true;
 
     assert.equal(input, expectedOutput);
