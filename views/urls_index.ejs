@@ -37,7 +37,10 @@
 
           <% for(let url in urls) { %>
           <tr>
-            <td><%= url %></td>
+            <td>
+              <a href="<%= urls[url] %>"><button type="button" class="btn btn-primary">
+                  <%= url %> <span class="badge badge-light"></span>
+                </button></a></td>
             <td><%= urls[url] %></td>
             <td>
 
@@ -54,6 +57,8 @@
           <% }} %>
         </tbody>
       </table>
+      <a href="/urls/new"><button type="button" class="btn btn-primary btn-lg btn-block">Create a New Short
+          Link</button></a>
     </main>
     <!-- Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
